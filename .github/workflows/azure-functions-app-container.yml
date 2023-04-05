@@ -58,7 +58,7 @@ jobs:
       run: |
         pwd
         ls -la
-        docker build -f /docker/emptycontainer.dockerfile
+        docker build -f docker/emptycontainer.dockerfile .
 
     # - name: 'Login via Azure CLI'
     #   uses: azure/login@v1
