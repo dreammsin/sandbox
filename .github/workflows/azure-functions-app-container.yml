@@ -38,9 +38,10 @@ env:
 
 jobs:
 
-  static-code-scan:
+  scan-build-publish:
     runs-on: ubuntu-latest
     environment: dev
+    # environment: AzureUSGovernment
     steps:
 
     - name: 'Checkout GitHub Action'
@@ -50,12 +51,14 @@ jobs:
       shell: bash
       run: |
         echo "hello people!"
+        echo "Run-Number is: $GITHUB_RUN_NUMBER"
 
-  build-and-publish:
-    runs-on: ubuntu-latest
-    environment: dev
-    # environment: AzureUSGovernment
-    steps:
+    - name: 'Build  Docker Image'
+      shell: bash
+      run: |
+        pwd
+        ls -la
+        docker build -f /docker/emptycontainer.dockerfile
 
     # - name: 'Login via Azure CLI'
     #   uses: azure/login@v1
@@ -77,10 +80,6 @@ jobs:
     #     docker build . -t ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE }}:${{ env.TAG }}
     #     # docker push ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE }}:${{ env.TAG }}
 
-    - name: 'Build  Docker Image'
-      shell: bash
-      run: |
-        docker build -f /docker/emptycontainer.dockerfile
 
   query-and-deploy:
     runs-on: ubuntu-latest
@@ -90,11 +89,6 @@ jobs:
       shell: bash
       run: |
         echo "ya!"
-
-    # If you want to display or use the functionapp url, then uncomment the task below
-    #- name: 'Published functionapp url'
-    #  run: |
-    #    echo "${{ steps.fa.outputs.app-url }}"
 
     # - name: Azure logout
     #   run: |
