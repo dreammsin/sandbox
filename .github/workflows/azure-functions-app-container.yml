@@ -34,7 +34,7 @@ env:
   REGISTRY: 'usecase1234registry'                 # set this to proper value for REGISTRY
   NAMESPACE: 'logistics'               # set this to proper value for NAMESPACE
   IMAGE: 'simulation'                       # set this to proper value for IMAGE
-  TAG: ${{ env.GITHUB_RUN_NUMBER }}                           # set this to proper value for TAG
+  TAG: $GITHUB_RUN_NUMBER                           # set this to proper value for TAG
 
 jobs:
 
