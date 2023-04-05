@@ -7,4 +7,4 @@ azure_sas_token = "M1TdXiipdLqD6HW9ermS"
 
 github_oauth_access_token = "M1TdXiipdLqD6HW9ermS"
 
-print("check PR policy")
+print("check PR policy again")
