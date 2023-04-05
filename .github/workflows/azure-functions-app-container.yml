@@ -24,14 +24,11 @@
 
 name: Deploy container to Azure Functions App
 
-on:
-  push:
-    branches:
-    - ["main"]
+on: [workflow_dispatch, push]
 
 permissions:
   contents: read
-
+ 
 env:
   LOGIN_SERVER: 'usecase1234registry.azurecr.io'              # set this to login server for your private container registry (e.g. 'contoso.azurecr.io', 'index.docker.io' )
   REGISTRY: 'usecase1234registry'                 # set this to proper value for REGISTRY
