@@ -144,7 +144,14 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         name: app
-    
+
+    - name: 'Create Application Resources via IaC'
+      shell: bash
+      run: |
+        echo "Use a cloud specific task to deploy resources"
+        echo "Required tooling for the specific cloud and template language such as bicep, azure cli, powershell core, azure modules etc.."
+        echo "::notice IaC deployment!"
+
     - name: 'Deploy to Target Env'
       shell: bash
       run: |

@@ -1,0 +1,5 @@
+$rg = "testdemorg"
+$sub = "a89aea40-a3c4-daef-gb41-hijk184a4ec2"
+$name = "test"
+
+az identity show --name $name --resource-group $rg --subscription $sub
