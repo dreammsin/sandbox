@@ -1,4 +1,6 @@
-# Comment
-RUN echo 'we are running some # of cool things'
+FROM scratch
+COPY * /app/
 
-EXPOSE 80/tcp
+RUN echo 'testing testing 123'
+
+EXPOSE 80

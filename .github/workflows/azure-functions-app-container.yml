@@ -1,9 +1,12 @@
 # This demo workflow will 
-## perform a code scan using GHAS
-## build a container from dockerfile
-## push the docker image to Azure container registry
-## Login to target Azure environment
-## Query for all resources inside the sub
+## - perform a code scan using GHAS
+## - build a container from dockerfile
+## - push the docker image to Azure container registry
+## - Login to target Azure environment
+## - Query for all resources inside the sub
+#
+# Secret scanning happens at commit time.
+# The code QL is performed at build time
 #
 # This workflow assumes you have already created the target Azure Functions app.
 # For instructions see https://learn.microsoft.com/en-us/azure/azure-functions/functions-create-function-linux-custom-image?tabs=in-process%2Cbash%2Cazure-cli&pivots=programming-language-csharp
@@ -14,21 +17,23 @@
 #   - REGISTRY_USERNAME
 #   - REGISTRY_PASSWORD
 # 2. Change env variables for your configuration.
-#
-# For more information on:
-#   - GitHub Actions for Azure: https://github.com/Azure/Actions
-#   - Azure Functions Container Action: https://github.com/Azure/functions-container-action
-#   - Azure Service Principal for RBAC: https://github.com/Azure/functions-action#using-azure-service-principal-for-rbac-as-deployment-credential
-#
-# For more samples to get started with GitHub Action workflows to deploy to Azure: https://github.com/Azure/actions-workflow-samples/tree/master/FunctionApp
 
-name: Deploy container to Azure Functions App
+# references:
+##   - GitHub Actions for Azure: https://github.com/Azure/Actions
+##   - Azure Service Principal for RBAC: https://github.com/Azure/functions-action#using-azure-service-principal-for-rbac-as-deployment-credential
+## variables https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables
+## https://docs.github.com/en/actions/using-workflows/storing-workflow-data-as-artifacts
 
+
+name: CICD Workflow MVP Demo
+
+## triggers
 on: [workflow_dispatch, push]
 
 permissions:
   contents: read
- 
+
+## set env variables 
 env:
   LOGIN_SERVER: 'usecase1234registry.azurecr.io'              # set this to login server for your private container registry (e.g. 'contoso.azurecr.io', 'index.docker.io' )
   REGISTRY: 'usecase1234registry'                 # set this to proper value for REGISTRY
@@ -36,9 +41,55 @@ env:
   IMAGE: 'simulation'                       # set this to proper value for IMAGE
   TAG: $GITHUB_RUN_NUMBER                           # set this to proper value for TAG
 
+## jobs run in parallel by default unless otherwise specified
 jobs:
 
-  scan-build-publish:
+  scan-code:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@v3
+
+    - name: 'smoke check'
+      shell: bash
+      run: |
+        echo "hello people!"
+        echo "Run-Number is: $GITHUB_RUN_NUMBER"
+        echo "::notice Run-Number = $GITHUB_RUN_NUMBER"
+
+    - name: 'Code Quality Scan'
+      shell: bash
+      run: |
+        echo "Scan code here"
+        echo "::notice Code scan completed!"
+        echo "Publish code scan results"
+
+  copy-publish:
+    needs: scan-code
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@v3
+
+    - name: 'Bundle Application Files'
+      shell: bash
+      run: |
+        pwd
+        ls -la
+        echo "You may zip your files here in this task"
+
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v3.1.2
+      with:
+        name: app # optional, default is artifact
+        path: |
+          docker
+
+  build-push:
+    needs: scan-code
     runs-on: ubuntu-latest
     environment: dev
     # environment: AzureUSGovernment
@@ -47,23 +98,19 @@ jobs:
     - name: 'Checkout GitHub Action'
       uses: actions/checkout@v3
 
-    - name: 'sanity check'
+    - name: 'Build Docker Image'
       shell: bash
       run: |
-        echo "hello people!"
-        echo "Run-Number is: $GITHUB_RUN_NUMBER"
-
-    - name: 'Build  Docker Image'
-      shell: bash
-      run: |
+        echo 'Reference: https://docs.docker.com/engine/reference/builder/'
         pwd
         ls -la
         docker build -f docker/emptycontainer.dockerfile .
 
-    # - name: 'Login via Azure CLI'
-    #   uses: azure/login@v1
-    #   with:
-    #     creds: ${{ secrets.AZURE_RBAC_CREDENTIALS }}
+    - name: 'Push Docker Image'
+      shell: bash
+      run: |
+        echo 'push docker image to container registry'
+        echo "::notice container image was pushed to registry!"
 
     # - name: 'Docker Login'
     #   uses: azure/docker-login@v1
@@ -81,14 +128,33 @@ jobs:
     #     # docker push ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE }}:${{ env.TAG }}
 
 
-  query-and-deploy:
+  deploy-verify:
+    needs: [copy-publish, build-push]
     runs-on: ubuntu-latest
     environment: dev
     steps:
-    - name: 'Deploy to target env'
+
+    - name: 'Starting deploy and verify'
+      shell: bash
+      run: |
+        echo "We will get artifacts then deploy them to the target environment"
+        echo "::notice Deployment started!"
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: app
+    
+    - name: 'Deploy to Target Env'
       shell: bash
       run: |
         echo "ya!"
+        echo "::notice Deployment completed!"
+
+    # - name: 'Login via Azure CLI'
+    #   uses: azure/login@v1
+    #   with:
+    #     creds: ${{ secrets.AZURE_RBAC_CREDENTIALS }}
 
     # - name: Azure logout
     #   run: |
