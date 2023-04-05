@@ -1,6 +1,5 @@
 FROM scratch
-COPY * /app/
+COPY * /
 
-RUN echo 'testing testing 123'
-
-EXPOSE 80
+# https://hub.docker.com/_/scratch
+CMD ["echo", "hello people!"]
