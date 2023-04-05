@@ -40,22 +40,26 @@ env:
   TAG: ${{ env.GITHUB_RUN_NUMBER }}                           # set this to proper value for TAG
 
 jobs:
+
   static-code-scan:
     runs-on: ubuntu-latest
     environment: dev
     steps:
+
     - name: 'Checkout GitHub Action'
       uses: actions/checkout@v3
+
+  build-and-publish:
+    runs-on: ubuntu-latest
+    environment: dev
+    ##environment: AzureUSGovernment
+    steps:
 
     - name: 'Login via Azure CLI'
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_RBAC_CREDENTIALS }}
 
-  build-and-publish:
-    runs-on: ubuntu-latest
-    environment: dev
-    steps:
     - name: 'Docker Login'
       uses: azure/docker-login@v1
       with:
