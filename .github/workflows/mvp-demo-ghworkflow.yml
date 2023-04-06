@@ -112,9 +112,14 @@ jobs:
     - name: 'Checkout GitHub Action'
       uses: actions/checkout@v3
 
-    - name: Azure login
-      run: |
-        az login --identity --username ${{ secrets.ACR_MANAGED_IDENTITY }}
+    - name: 'Login via Azure CLI'
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_RBAC_CREDENTIALS }}
+
+    # - name: Azure login
+    #   run: |
+    #     az login --identity --username ${{ secrets.ACR_MANAGED_IDENTITY }}
 
     - name: Container Registry login
       run: |
@@ -182,10 +187,6 @@ jobs:
         echo "ya!"
         echo "::notice Deployment completed!"
 
-    # - name: 'Login via Azure CLI'
-    #   uses: azure/login@v1
-    #   with:
-    #     creds: ${{ secrets.AZURE_RBAC_CREDENTIALS }}
 
     # - name: Azure logout
     #   run: |
