@@ -1,3 +1,16 @@
+import mysql.connector
+
+mydb = mysql.connector.connect(
+  host="localhost",
+  user="yourusername",
+  password="yourpassword"
+)
+
+sqlstring = input("Enter sql:")
+mycursor = mydb.cursor()
+
+mycursor.execute("$sqlstring")
+
 print("Hello from python")
 
 ## Enter fake secrets
