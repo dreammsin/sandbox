@@ -37,13 +37,13 @@ permissions:
 
 ## set env variables 
 env:
-  LOGIN_SERVER: ${{ secrets.LOGIN_SERVER }}              # set this to login server for your private container registry (e.g. 'contoso.azurecr.io', 'index.docker.io' )
-  REGISTRY: ${{ secrets.REGISTRY }}                # set this to proper value for REGISTRY
+  LOGIN_SERVER: ${{ env.LOGIN_SERVER }}              # set this to login server for your private container registry (e.g. 'contoso.azurecr.io', 'index.docker.io' )
+  REGISTRY: ${{ env.REGISTRY }}                # set this to proper value for REGISTRY
   NAMESPACE: 'logistics'               # set this to proper value for NAMESPACE
   IMAGE: 'simulation'                       # set this to proper value for IMAGE
   TAG: $GITHUB_RUN_NUMBER                           # set this to proper value for TAG
   DOCKERFILE: 'docker/emptycontainer.dockerfile'
-  RG: ${{ secrets.RG }}
+  RG: ${{ env.RG }}
 
 ## jobs run in parallel by default unless otherwise specified
 jobs:
