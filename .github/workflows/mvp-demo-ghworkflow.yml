@@ -28,7 +28,12 @@
 name: CICD Workflow MVP Demo
 
 ## triggers
-on: [workflow_dispatch, push]
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+  push: 
+    branches: [main]
 
 permissions:
   contents: read
@@ -45,7 +50,18 @@ env:
 jobs:
 
   scan-code:
+    name: Perform CodeQL Scan
     runs-on: ubuntu-latest
+
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'python' ]
     steps:
 
     - name: 'Checkout GitHub Action'
@@ -58,15 +74,19 @@ jobs:
         echo "Run-Number is: $GITHUB_RUN_NUMBER"
         echo "::notice Run-Number = $GITHUB_RUN_NUMBER"
 
-    - name: 'Code Quality Scan'
-      shell: bash
-      run: |
-        echo "Scan code here"
-        echo "::notice Code scan completed!"
-        echo "Publish code scan results"
+    # Initializes the CodeQL tools for scanning.
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: ${{ matrix.language }}
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
+      with:
+        category: "/language:${{matrix.language}}"
 
   copy-publish:
-    needs: scan-code
+    name: Publish Artifacts to GHES artifact storage
     runs-on: ubuntu-latest
     environment: dev
     steps:
@@ -89,7 +109,7 @@ jobs:
           docker
 
   build-push:
-    needs: scan-code
+    name: Build and Push Docker image
     runs-on: ubuntu-latest
     environment: dev
     # environment: AzureUSGovernment
@@ -130,29 +150,30 @@ jobs:
 
   deploy-verify:
     needs: [copy-publish, build-push]
+    name: Deploy to Target Environment and Run Validation
     runs-on: ubuntu-latest
     environment: dev
     steps:
-
-    - name: 'Starting deploy and verify'
-      shell: bash
-      run: |
-        echo "We will get artifacts then deploy them to the target environment"
-        echo "::notice Deployment started!"
 
     - name: Download artifacts
       uses: actions/download-artifact@v3
       with:
         name: app
 
-    - name: 'Create Application Resources via IaC'
+    - name: 'Get Docker Image'
+      shell: bash
+      run: |
+        echo 'get docker image from container registry'
+        echo "::notice container image was pushed to registry!"
+
+    - name: 'Deploy Infrastructure Resources via IaC'
       shell: bash
       run: |
         echo "Use a cloud specific task to deploy resources"
         echo "Required tooling for the specific cloud and template language such as bicep, azure cli, powershell core, azure modules etc.."
         echo "::notice IaC deployment!"
 
-    - name: 'Deploy to Target Env'
+    - name: 'Deploy App to Target Env'
       shell: bash
       run: |
         echo "ya!"
