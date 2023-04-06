@@ -106,7 +106,7 @@ jobs:
         echo 'Reference: https://docs.docker.com/engine/reference/builder/'
         pwd
         ls -la
-        docker build -f ${{ env.DOCKERFILE }} . -t ${{ vars.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE }}:${{ env.TAG }}
+        docker build -f ${{ env.DOCKERFILE }} . -t ${{ env.NAMESPACE }}/${{ env.IMAGE }}:${{ env.TAG }}
 
     - name: 'Login to Azure Target Environment'
       run: |
@@ -121,7 +121,7 @@ jobs:
       run: |
         echo 'push docker image to container registry'
         echo "::warning:: Cannot push image to target registry!"
-        # docker push ${{ vars.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE }}:${{ env.TAG }}
+        # docker push ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE }}:${{ env.TAG }}
 
 
   deploy-dev:
