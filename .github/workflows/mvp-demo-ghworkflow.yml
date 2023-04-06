@@ -114,6 +114,10 @@ jobs:
         docker build -f ${{ env.DOCKERFILE }} . -t ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE }}:${{ env.TAG }}
 
 ## The following steps will fail with no connectivity
+    - name: "Warning: No connectivity to target env"
+      run: |
+        echo '::warning:: No connectivity to target env!!'
+
     - name: 'Login to Azure Target Environment'
       uses: azure/CLI@v1
       with:
@@ -133,7 +137,7 @@ jobs:
       shell: bash
       run: |
         echo 'push docker image to container registry'
-        echo "::notice container image was pushed to registry!"
+        echo "::notice:: container image was pushed to registry!"
         # docker push ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE }}:${{ env.TAG }}
 
 
