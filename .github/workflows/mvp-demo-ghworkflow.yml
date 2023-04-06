@@ -37,13 +37,10 @@ permissions:
 
 ## set env variables 
 env:
-  LOGIN_SERVER: ${{ vars.LOGIN_SERVER }}              # set this to login server for your private container registry (e.g. 'contoso.azurecr.io', 'index.docker.io' )
-  REGISTRY: ${{ vars.REGISTRY }}                # set this to proper value for REGISTRY
   NAMESPACE: 'logistics'               # set this to proper value for NAMESPACE
   IMAGE: 'simulation'                       # set this to proper value for IMAGE
   TAG: $GITHUB_RUN_NUMBER                           # set this to proper value for TAG
   DOCKERFILE: 'docker/emptycontainer.dockerfile'
-  RG: ${{ vars.RG }}
 
 ## jobs run in parallel by default unless otherwise specified
 jobs:
@@ -109,7 +106,7 @@ jobs:
         echo 'Reference: https://docs.docker.com/engine/reference/builder/'
         pwd
         ls -la
-        docker build -f ${{ env.DOCKERFILE }} . -t ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE }}:${{ env.TAG }}
+        docker build -f ${{ env.DOCKERFILE }} . -t ${{ vars.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE }}:${{ env.TAG }}
 
     - name: 'Login to Azure Target Environment'
       run: |
@@ -124,7 +121,7 @@ jobs:
       run: |
         echo 'push docker image to container registry'
         echo "::warning:: Cannot push image to target registry!"
-        # docker push ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE }}:${{ env.TAG }}
+        # docker push ${{ vars.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE }}:${{ env.TAG }}
 
 
   deploy-dev:
