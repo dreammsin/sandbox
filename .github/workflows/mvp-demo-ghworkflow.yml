@@ -45,6 +45,7 @@ env:
   NAMESPACE: 'logistics'               # set this to proper value for NAMESPACE
   IMAGE: 'simulation'                       # set this to proper value for IMAGE
   TAG: $GITHUB_RUN_NUMBER                           # set this to proper value for TAG
+  DOCKERFILE: 'docker/emptycontainer.dockerfile'
 
 ## jobs run in parallel by default unless otherwise specified
 jobs:
@@ -66,13 +67,6 @@ jobs:
 
     - name: 'Checkout GitHub Action'
       uses: actions/checkout@v3
-
-    - name: 'smoke check'
-      shell: bash
-      run: |
-        echo "hello people!"
-        echo "Run-Number is: $GITHUB_RUN_NUMBER"
-        echo "::notice Run-Number = $GITHUB_RUN_NUMBER"
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
@@ -118,6 +112,14 @@ jobs:
     - name: 'Checkout GitHub Action'
       uses: actions/checkout@v3
 
+    - name: Azure login
+      run: |
+        az login --identity --username ${{ secrets.ACR_MANAGED_IDENTITY }}
+
+    - name: Container Registry login
+      run: |
+        az acr login --name ${{ env.REGISTRY }}
+
     - name: 'Build Docker Image'
       shell: bash
       run: |
@@ -125,6 +127,7 @@ jobs:
         pwd
         ls -la
         docker build -f docker/emptycontainer.dockerfile .
+        docker build -f ${{ env.DOCKERFILE }} . -t ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE }}:${{ env.TAG }}
 
     - name: 'Push Docker Image'
       shell: bash
