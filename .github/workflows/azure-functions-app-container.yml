@@ -28,7 +28,10 @@
 name: CICD Workflow MVP Demo
 
 ## triggers
-on: [workflow_dispatch, push]
+on:
+  workflow_dispatch:
+  pull_request:
+  push: [main]
 
 permissions:
   contents: read
