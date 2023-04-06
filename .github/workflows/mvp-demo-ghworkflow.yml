@@ -8,9 +8,6 @@
 # Secret scanning happens at commit time.
 # The code QL is performed at build time
 #
-# This workflow assumes you have already created the target Azure Functions app.
-# For instructions see https://learn.microsoft.com/en-us/azure/azure-functions/functions-create-function-linux-custom-image?tabs=in-process%2Cbash%2Cazure-cli&pivots=programming-language-csharp
-#
 # To configure this workflow:
 # 1. Set up the following secrets in your repository:
 #   - AZURE_RBAC_CREDENTIALS
@@ -45,6 +42,8 @@ env:
   NAMESPACE: 'logistics'               # set this to proper value for NAMESPACE
   IMAGE: 'simulation'                       # set this to proper value for IMAGE
   TAG: $GITHUB_RUN_NUMBER                           # set this to proper value for TAG
+  DOCKERFILE: 'docker/emptycontainer.dockerfile'
+  RG: 'devsecopscicdtestRG'
 
 ## jobs run in parallel by default unless otherwise specified
 jobs:
@@ -67,13 +66,6 @@ jobs:
     - name: 'Checkout GitHub Action'
       uses: actions/checkout@v3
 
-    - name: 'smoke check'
-      shell: bash
-      run: |
-        echo "hello people!"
-        echo "Run-Number is: $GITHUB_RUN_NUMBER"
-        echo "::notice Run-Number = $GITHUB_RUN_NUMBER"
-
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v2
@@ -88,30 +80,24 @@ jobs:
   copy-publish:
     name: Publish Artifacts to GHES artifact storage
     runs-on: ubuntu-latest
-    environment: dev
     steps:
 
     - name: 'Checkout GitHub Action'
       uses: actions/checkout@v3
 
-    - name: 'Bundle Application Files'
-      shell: bash
-      run: |
-        pwd
-        ls -la
-        echo "You may zip your files here in this task"
-
-    - name: Upload a Build Artifact
+\    - name: Upload a Build Artifact
       uses: actions/upload-artifact@v3.1.2
       with:
         name: app # optional, default is artifact
         path: |
           docker
+          python
 
   build-push:
     name: Build and Push Docker image
     runs-on: ubuntu-latest
     environment: dev
+    continue-on-error: true
     # environment: AzureUSGovernment
     steps:
 
@@ -125,27 +111,26 @@ jobs:
         pwd
         ls -la
         docker build -f docker/emptycontainer.dockerfile .
+        docker build -f ${{ env.DOCKERFILE }} . -t ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE }}:${{ env.TAG }}
 
-    - name: 'Push Docker Image'
+## The following steps will fail with no connectivity
+    - name: 'Login to Azure Target Environment'
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_RBAC_CREDENTIALS }}
+
+    - name: 'Login to Azure Container Registry via azcli'
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          az acr login --name ${{ env.REGISTRY }}
+
+    - name: 'Push Docker Image to Container Registry'
       shell: bash
       run: |
         echo 'push docker image to container registry'
         echo "::notice container image was pushed to registry!"
-
-    # - name: 'Docker Login'
-    #   uses: azure/docker-login@v1
-    #   with:
-    #     login-server: ${{ env.LOGIN_SERVER }}
-    #     username: ${{ secrets.REGISTRY_USERNAME }}
-    #     password: ${{ secrets.REGISTRY_PASSWORD }}
-
-    # - name: 'Compose Customized Docker Image'
-    #   shell: bash
-    #   run: |
-    #     # If your function app project is not located in your repository's root
-    #     # Please change the path to your directory for docker build
-    #     docker build . -t ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE }}:${{ env.TAG }}
-    #     # docker push ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE }}:${{ env.TAG }}
+        # docker push ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE }}:${{ env.TAG }}
 
 
   deploy-verify:
@@ -153,6 +138,7 @@ jobs:
     name: Deploy to Target Environment and Run Validation
     runs-on: ubuntu-latest
     environment: dev
+    continue-on-error: true
     steps:
 
     - name: Download artifacts
@@ -160,30 +146,39 @@ jobs:
       with:
         name: app
 
-    - name: 'Get Docker Image'
-      shell: bash
-      run: |
-        echo 'get docker image from container registry'
-        echo "::notice container image was pushed to registry!"
+## The following steps will fail with no connectivity
+    - name: 'Login to Azure Target Environment'
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_RBAC_CREDENTIALS }}
 
     - name: 'Deploy Infrastructure Resources via IaC'
-      shell: bash
-      run: |
-        echo "Use a cloud specific task to deploy resources"
-        echo "Required tooling for the specific cloud and template language such as bicep, azure cli, powershell core, azure modules etc.."
-        echo "::notice IaC deployment!"
-
-    - name: 'Deploy App to Target Env'
-      shell: bash
-      run: |
-        echo "ya!"
-        echo "::notice Deployment completed!"
-
-    # - name: 'Login via Azure CLI'
-    #   uses: azure/login@v1
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          az account show
+ 
+    # - name: 'Login to Azure Container Registry'
+    #   uses: azure/docker-login@v1
     #   with:
-    #     creds: ${{ secrets.AZURE_RBAC_CREDENTIALS }}
+    #     login-server: ${{ env.LOGIN_SERVER }}
+    #     username: ${{ secrets.REGISTRY_USERNAME }}
+    #     password: ${{ secrets.REGISTRY_PASSWORD }}
 
-    # - name: Azure logout
-    #   run: |
-    #     az logout
+    - name: 'Login to Azure Container Registry via azcli'
+      run: |
+        az acr login --name ${{ env.REGISTRY }}
+
+    - name: 'Deploy container'
+      shell: bash
+      run: |
+        rg="${{ env.RG }}"
+        name="${{ env.IMAGE }}"
+        image="${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE }}:${{ env.TAG }}"
+        dnsname="mvp-demo"
+        az container create --resource-group $rg --name $name --image $image --dns-name-label $dnsname --ports 80
+
+
+    - name: Azure logout
+      run: |
+        az logout
