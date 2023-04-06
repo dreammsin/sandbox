@@ -78,7 +78,7 @@ jobs:
         category: "/language:${{matrix.language}}"
 
   copy-publish:
-    name: Publish Artifacts to GHES artifact storage
+    name: Publish IaC Artifacts to artifact storage
     runs-on: ubuntu-latest
     steps:
 
@@ -109,7 +109,6 @@ jobs:
         echo 'Reference: https://docs.docker.com/engine/reference/builder/'
         pwd
         ls -la
-        docker build -f docker/emptycontainer.dockerfile .
         docker build -f ${{ env.DOCKERFILE }} . -t ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE }}:${{ env.TAG }}
 
     - name: 'Login to Azure Target Environment'
@@ -128,9 +127,9 @@ jobs:
         # docker push ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE }}:${{ env.TAG }}
 
 
-  deploy-verify:
+  deploy-dev:
     needs: [copy-publish, build-push]
-    name: Deploy to Target Environment and Run Validation
+    name: Deploy to Dev and Run Validation
     runs-on: ubuntu-latest
     environment: dev
     steps:
@@ -156,3 +155,31 @@ jobs:
       run: |
         echo '::warning:: Cannot create container instance!!'
         #az container create --resource-group $rg --name $name --image $image --dns-name-label $dnsname --ports 80
+
+  deploy-test:
+    needs: [deploy-dev]
+    name: Deploy to Test and Run Validation
+    runs-on: ubuntu-latest
+    environment: test
+    steps:
+
+    - name: Download published artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: app
+
+    - name: 'Login to Azure Target Environment'
+      run: |
+        echo '::warning:: No connectivity to target environment!!'
+
+    - name: 'Deploy Infrastructure Resources via IaC'
+      run: |
+        echo '::warning:: No connectivity to target environment!!'
+ 
+    - name: 'Login to Azure Container Registry'
+      run: |
+        echo '::warning:: No connectivity to container registry!!'
+
+    - name: 'Deploy container'
+      run: |
+        echo '::warning:: Cannot create container instance!!'
