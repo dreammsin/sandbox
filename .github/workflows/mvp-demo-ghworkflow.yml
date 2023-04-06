@@ -86,7 +86,6 @@ jobs:
         category: "/language:${{matrix.language}}"
 
   copy-publish:
-    needs: scan-code
     name: Publish Artifacts to GHES artifact storage
     runs-on: ubuntu-latest
     environment: dev
@@ -110,7 +109,6 @@ jobs:
           docker
 
   build-push:
-    needs: scan-code
     name: Build and Push Docker image
     runs-on: ubuntu-latest
     environment: dev
