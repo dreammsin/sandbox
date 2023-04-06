@@ -12,3 +12,9 @@ azure_storage_account_key="SoK0BArf8LPIMIlx4CUZPyFfZ4bDi+vx/IYhjKTMK+ZHIwR8DAC7a
 
 x = int(20)
 x = range(6)
+
+from django.db import connection
+
+def show_user(request, username):
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM users WHERE username = '%s'" % username)
