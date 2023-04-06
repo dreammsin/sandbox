@@ -8,10 +8,7 @@ oid = "2436-BCC5-9A6D-1579-D57A"
 azure_sas_token = "M1TdXiipdLqD6HW9ermS"
 ## validation notified
 github_oauth_access_token = "M1TdXiipdLqD6HW9ermS"
+azure_storage_account_key="SoK0BArf8LPIMIlx4CUZPyFfZ4bDi+vx/IYhjKTMK+ZHIwR8DAC7aasxrfIuFo7YBmQbL5wwwXcA+AStePxzNA=="
 
-print("check PR policy again") 
-adding_some_text = "stuff"
-
-filename = input("Please input a number:")
-print("The data type of {} is {}".format(filename, type(filename)))
-f = open(filename)
+x = int(20)
+x = range(6)

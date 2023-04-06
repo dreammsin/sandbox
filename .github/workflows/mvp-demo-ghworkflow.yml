@@ -37,13 +37,13 @@ permissions:
 
 ## set env variables 
 env:
-  LOGIN_SERVER: 'usecase1234registry.azurecr.io'              # set this to login server for your private container registry (e.g. 'contoso.azurecr.io', 'index.docker.io' )
-  REGISTRY: 'usecase1234registry'                 # set this to proper value for REGISTRY
+  LOGIN_SERVER: ${{ secrets.LOGIN_SERVER }}              # set this to login server for your private container registry (e.g. 'contoso.azurecr.io', 'index.docker.io' )
+  REGISTRY: ${{ secrets.REGISTRY }}                # set this to proper value for REGISTRY
   NAMESPACE: 'logistics'               # set this to proper value for NAMESPACE
   IMAGE: 'simulation'                       # set this to proper value for IMAGE
   TAG: $GITHUB_RUN_NUMBER                           # set this to proper value for TAG
   DOCKERFILE: 'docker/emptycontainer.dockerfile'
-  RG: 'devsecopscicdtestRG'
+  RG: ${{ secrets.RG }}
 
 ## jobs run in parallel by default unless otherwise specified
 jobs:
@@ -88,7 +88,7 @@ jobs:
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v3.1.2
       with:
-        name: app # optional, default is artifact
+        name: IaC # optional, default is artifact
         path: |
           docker
           python
@@ -136,8 +136,6 @@ jobs:
 
     - name: Download published artifacts
       uses: actions/download-artifact@v3
-      with:
-        name: app
 
     - name: 'Login to Azure Target Environment'
       run: |
@@ -165,8 +163,6 @@ jobs:
 
     - name: Download published artifacts
       uses: actions/download-artifact@v3
-      with:
-        name: app
 
     - name: 'Login to Azure Target Environment'
       run: |
