@@ -32,9 +32,6 @@ on:
   push: 
     branches: [main]
 
-permissions:
-  contents: read
-
 ## set env variables 
 env:
   LOGIN_SERVER: 'usecase1234registry.azurecr.io'              # set this to login server for your private container registry (e.g. 'contoso.azurecr.io', 'index.docker.io' )
@@ -50,7 +47,6 @@ jobs:
 
   scan-code:
     strategy:
-      fail-fast: false
       matrix:
         language: [ 'python' ]
     uses: ./.github/workflows/perform-code-scan.yml
