@@ -49,33 +49,13 @@ env:
 jobs:
 
   scan-code:
-    name: Perform CodeQL Scan
-    runs-on: ubuntu-latest
-
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-
     strategy:
       fail-fast: false
       matrix:
         language: [ 'python' ]
-    steps:
-
-    - name: 'Checkout GitHub Action'
-      uses: actions/checkout@v3
-
-    # Initializes the CodeQL tools for scanning.
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
-      with:
-        languages: ${{ matrix.language }}
-
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
-      with:
-        category: "/language:${{matrix.language}}"
+    uses: ./.github/workflows/perform-code-scan.yml
+    with: 
+      language: ${{ matrix.language }}
 
   copy-publish:
     name: Publish IaC Artifacts to artifact storage
