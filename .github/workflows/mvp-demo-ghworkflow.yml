@@ -157,6 +157,7 @@ jobs:
         #az container create --resource-group $rg --name $name --image $image --dns-name-label $dnsname --ports 80
 
   deploy-test:
+    if: ${{ github.ref == 'refs/heads/main' }}
     needs: [deploy-dev]
     name: Deploy to Test and Run Validation
     runs-on: ubuntu-latest
