@@ -53,7 +53,7 @@ jobs:
       fail-fast: false
       matrix:
         language: [ 'python' ]
-    uses: ./.github/workflows/perform-code-scan.yml@main
+    uses: ./.github/workflows/perform-code-scan.yml
     with: 
       language: ${{ matrix.language }}
 
