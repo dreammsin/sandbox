@@ -48,14 +48,38 @@ env:
 ## jobs run in parallel by default unless otherwise specified
 jobs:
 
-  scan-code:
+  analyze:
+    name: Code Scan
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
     strategy:
       fail-fast: false
       matrix:
         language: [ 'python' ]
-    uses: ./.github/workflows/perform-code-scan.yml
-    with: 
-      language: ${{ matrix.language }}
+
+    steps:
+
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@v3
+
+    # Initializes the CodeQL tools for scanning.
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: ${{ matrix.language }}
+
+    # Autobuild attempts to build any compiled languages  (C/C++, C#, Go, or Java).
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v2
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
+      with:
+        category: "/language:${{matrix.language}}"
 
   copy-publish:
     name: Publish IaC Artifacts to artifact storage
@@ -109,7 +133,7 @@ jobs:
 
   deploy-dev:
     if: ${{ github.event_name == 'push' }}
-    needs: [copy-publish, build-push]
+    needs: [analyze, copy-publish, build-push]
     name: Deploy to Dev and Run Validation
     runs-on: ubuntu-latest
     environment: dev
